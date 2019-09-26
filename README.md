@@ -24,6 +24,8 @@ CellType is what kind of cell it represents. It can be *wall, traffic light, roa
 <img src="images/CellType.jpg" width="300">
 
 **Directions** show the way a car can move. I did it with vectors where the first index is y-coordinate, the second is x-coordinate -> (y,x). The reference point is in the top right corner, y-axis is directed to down, x-axis is directed to right. 
+Reference point and axes | Directions
+-------------------------|-----------
 <img src="images/ReferencePoint.JPG" width=300>|<img src="images/Directions.jpg" width="300">
 
 
