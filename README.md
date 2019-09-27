@@ -13,17 +13,21 @@ An application displaying a traffic model based on cellular automata
   
   
 [Cellular automata](https://en.wikipedia.org/wiki/Cellular_automaton) was the main tools for modeling.
-A cellular automaton consists of a regular grid of cells, each in one of a finite number of states.
+A cellular automaton consists of a regular grid of cells, each in one of a finite number of states. 
+Iteration is each update of the grid of cells. 
 
-In my case the grid of cells contains such states as CeLLType, directions, movePermision, velocities:
-States = **[cellType, directions, movePermision, velocities]**
+The base for modeling extactly traffic flows was [Nagel–Schreckenberg model.](https://en.wikipedia.org/wiki/Nagel%E2%80%93Schreckenberg_model)
 
-CellType is what kind of cell it represents. It can be *wall, traffic light, road, car*. **Wall** is a a state of cells which a car can't go through.
-**Road** is a state of cells which a car can move. **Car** CellType for a car, **traffic light** for a traffic light.
+
+In my case the grid of cells contains such states as cell type, direction, move permision, velocitiy:
+States = **[cell type, direction, move permision, velocity]**
+
+Cell type is what kind of cell it represents. It can be *wall, traffic light, road, car*. **Wall** is a a state of cells which a car can't go through.
+**Road** is a state of cells which a car can move. **Car** cell type for a car, **traffic light** for a traffic light.
 
 <img src="images/CellType.jpg" width="300">
 
-**Directions** show the way a car can move. I did it with vectors where a value of the first index is y-coordinate, the second is x-coordinate -> (y,x). The reference point is in the top right corner, y-axis is directed to down, x-axis is directed to right. 
+**Direction** shows the way a car can move. I did it with vectors where a value of the first index is y-coordinate, the second is x-coordinate -> (y,x). The reference point is in the top right corner, y-axis is directed to down, x-axis is directed to right. 
 The first and second coordintaes with the sign(+/-) show possible movements along y-axis and x-axis respectively. If 0, it can't move. If ±1, it can move. 
 
 Reference point and axes | Directions
@@ -61,7 +65,7 @@ After that the AATLC decides to switch the state of the traffic light or not. It
 
 State RED | State GREEN | State GREEN TO RED / RED TO GREEN
 ----------|-------------|----------------------------------
- <img src="images/switchRed.JPG"> | <img src="images/switchGreen.JPG"> | If more than some time interval
+<img src="images/switchRed.JPG"> | <img src="images/switchGreen.JPG"> | If more than some time interval
 
 If the present state of the traffic light is RED and fh/fv > k it switches to the RED TO GREEN state. There is the GREEN state after that.
 
@@ -69,3 +73,6 @@ If the present state of the traffic light is GREEN and fv/fh > k it switches to 
 
 <img src="images/adaptive.jpg" width="300">
 
+
+## <h2>Results</h2>
+As you could see for the adaptive algorighm was used paramaters *p* and *k*. I tried different values for these parameters. The adaptive algorighm with some combinations of parameters worked definitely better than the classical algorithm. It means a driver's got temper less because of the smart controling traffic flow.  
