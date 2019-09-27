@@ -52,17 +52,20 @@ This model can be used for implementing different algotighms of the traffic ligh
 I tried to make the AATLC. The main idea is calculating the weights along y- and x-axes:
 <img src="images/formula.JPG">
 
-fh stands for the weight along the x-axis (h - horizontal),
+*fh* stands for the weight along the x-axis (h - horizontal),
 
-fv stands for the weigth along the y-axis (v - vertical)
+*fv* stands for the weigth along the y-axis (v - vertical)
 
 It calculates the distance between every car moving to the center and the center (roadcrossing)  on each line. 
 After that the AATLC decides to switch the state of the traffic light or not. It depends on what state is now.
 
 State RED | State GREEN | State GREEN TO RED / RED TO GREEN
 ----------|-------------|----------------------------------
-<img src="images/switchRed.JPG"> | <img src="images/switchGreen.JPG"> | Continues some time and then switch
+ <img src="images/switchRed.JPG"> | <img src="images/switchGreen.JPG"> | If more than some time interval
 
-If the present state of the traffic light is RED and fh/fv > k it switches to the RED TO GREEN state. There is the GREEN state after some time (time interval).
+If the present state of the traffic light is RED and fh/fv > k it switches to the RED TO GREEN state. There is the GREEN state after that.
 
-If the present state of the traffic light is GREEN and fv/fh > k it switches to the GREEN TO RED state. There is the RED state after some time (time interval).
+If the present state of the traffic light is GREEN and fv/fh > k it switches to the GREEN TO RED state. There is the RED state after that.
+
+<img src="images/adaptive.jpg" width="300">
+
