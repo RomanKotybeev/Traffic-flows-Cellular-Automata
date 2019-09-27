@@ -25,6 +25,7 @@ CellType is what kind of cell it represents. It can be *wall, traffic light, roa
 
 **Directions** show the way a car can move. I did it with vectors where a value of the first index is y-coordinate, the second is x-coordinate -> (y,x). The reference point is in the top right corner, y-axis is directed to down, x-axis is directed to right. 
 The first and second coordintaes with the sign(+/-) show possible movements along y-axis and x-axis respectively. If 0, it can't move. If ±1, it can move. 
+
 Reference point and axes | Directions
 -------------------------|-----------
 <img src="images/ReferencePoint.JPG" width=300> | <img src="images/Directions.jpg" width="300">
