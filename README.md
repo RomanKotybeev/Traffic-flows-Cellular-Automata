@@ -30,18 +30,39 @@ Reference point and axes | Directions
 -------------------------|-----------
 <img src="images/ReferencePoint.JPG" width=300> | <img src="images/Directions.jpg" width="300">
 
+##
 Here the thing. If any car tries to cross the center of the road, it will continue to move diagonally (the both coordinates allow to move). To prevent this I decided to make another states called **move permissions**. Moreover, it allows to implement a traffic light. 
 The traffic light has 4 states. The *GREEN* one allows to move along x-axis, the *RED* one allows to move along y-axis, the last *RED TO GREEN* and *GREEN TO RED* are for switching from the GREEN state to the RED state. 
+**Move permisions** show which flow (along x-axis or y-axis) can move through the roadcross 
 
 Traffic light switches | Move permission for RED | Move permission for GREEN
 -----------------------|-------------------------|--------------------------
 <img src="images/TrafficLight.JPG" width=300> | <img src="images/movePerRed.jpg" width=250> | <img src="images/movePerGreen.jpg" width=250> 
 
+##
+**Velocities** show the speed of cars. It is represented some constant multiplicated by directions
+
+<img src="images/velocities.jpg" width=300> 
 
 
+## <h2>For what purpose</h2>
 
+This model can be used for implementing different algotighms of the traffic light control. We can compare time delay for all cars using some *adaptive algorighm of the traffic light control (AATLC)* and a classic algorigthm of the traffic light control (CATLC). AATLC takes in account the traffic congestion and tries to minimize the time delay, so It calms down drivers. CATLC switches states of traffic light after defininte time.
 
+I tried to make the AATLC. The main idea is calculating the weights along y- and x-axes:
+<img src="images/formula.JPG">
 
+fh stands for the weight along the x-axis (h - horizontal),
 
+fv stands for the weigth along the y-axis (v - vertical)
 
+It calculates the distance between every car moving to the center and the center (roadcrossing)  on each line. 
+After that the AATLC decides to switch the state of the traffic light or not. It depends on what state is now.
 
+State RED | State GREEN | State GREEN TO RED / RED TO GREEN
+----------|-------------|----------------------------------
+<img src="images/switchRed.JPG"> | <img src="images/switchGreen.JPG"> | Continues some time and then switch
+
+If the present state of the traffic light is RED and fh/fv > k it switches to the RED TO GREEN state. There is the GREEN state after some time (time interval).
+
+If the present state of the traffic light is GREEN and fv/fh > k it switches to the GREEN TO RED state. There is the RED state after some time (time interval).
