@@ -47,7 +47,7 @@ Traffic light switches | Move permission for RED | Move permission for GREEN
 
 ## <h2>For what purpose</h2>
 
-This model can be used for implementing different algotighms of the traffic light control. We can compare time delay for all cars using some *adaptive algorighm of the traffic light control (AATLC)* and a classic algorigthm of the traffic light control (CATLC). AATLC takes in account the traffic congestion and tries to minimize the time delay, so It calms down drivers. CATLC switches states of traffic light after defininte time.
+This model can be used for implementing different algotighms of the traffic light control. We can compare time delay for all cars using some **adaptive algorighm of the traffic light control (AATLC)** and *a classic algorigthm of the traffic light control (CATLC)*. AATLC takes in account the traffic congestion and tries to minimize the time delay, so It calms down drivers. CATLC switches states of traffic light after defininte time.
 
 I tried to make the AATLC. The main idea is calculating the weights along y- and x-axes:
 <img src="images/formula.JPG">
