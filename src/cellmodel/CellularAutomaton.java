@@ -61,13 +61,17 @@ public class CellularAutomaton {
 	//max cars in the grid
 	private int totalCars;
 
+	//to use processing library tools
+	PApplet p;
 
 	/* @totalCars is a maximum cars in the grid
 	 * @power is one of the parameters of the adaptive algorithm
 	 * @treshold is one of the parameters of the adaptive algorithm
-	 * @p : PApplet. is necessary for defining width and height of the screen available in PApplet
+	 * @p : PApplet is necessary for defining width and height of the screen available in PApplet
 	 */
 	CellularAutomaton(int totalCars, float power, double treshold, PApplet p) {
+		this.p = p;
+		
 		int height = p.height;
 		int width = p.width;
 		
@@ -182,52 +186,52 @@ public class CellularAutomaton {
 	}
 	
 	//Draw cells with processing library
-	public void displayCells(PApplet pg) {
+	public void displayCells() {
 
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
 				if (cells[y][x] == CellType.WALL) {
-					pg.fill(125);
+					p.fill(125);
 				} 
 				else if (cells[y][x] == CellType.ROAD) {
-					pg.fill(255);
+					p.fill(255);
 				} 
 				else if (cells[y][x] == CellType.TRAFFIC_LIGHT) {
 					switch (trafficLightState) {
 					case RED:
-						pg.fill(255, 0, 0);
+						p.fill(255, 0, 0);
 						break;
 					case GREEN:
-						pg.fill(0, 255, 0);
+						p.fill(0, 255, 0);
 						break;
 					case GREEN_TO_RED:
 					case RED_TO_GREEN:
-						pg.fill(255, 255, 0);
+						p.fill(255, 255, 0);
 						break;
 					}
 				} 
 				else if (cells[y][x] == CellType.CAR) {
-					pg.fill(0, 0, 255);
+					p.fill(0, 0, 255);
 				} 
 				else {
 					throw new java.lang.Error("cell[y][x] == ?");
 				}
-				pg.rect(x * SCALE, y * SCALE, SCALE, SCALE);
+				p.rect(x * SCALE, y * SCALE, SCALE, SCALE);
 			}
 		}
 	}
 
 	// This method and all methods which this method calls use Nagel-Schrekenberg model
 	// This method creates an updated grid of cells. Updating is based on rules of NS-model
-	public void nextIteration(PApplet p) {
+	public void nextIteration() {
 		//see below implementation of these methods
 		//A car speeds down if there is another car in front of it or the traffic light forbids to move further  
 		//A car speeds up if there is no obstacle in front of it
 		speedUp();
 		speedDown();
 
-		CellType[][] nextCells = initNextCells(p);
-		Vector2D[][] nextVelocities = initNextVelocities(p);
+		CellType[][] nextCells = initNextCells();
+		Vector2D[][] nextVelocities = initNextVelocities();
 
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
@@ -256,7 +260,7 @@ public class CellularAutomaton {
 		checkTime();
 	}
 
-	public CellType[][] initNextCells(PApplet p) {
+	public CellType[][] initNextCells() {
 		CellType[][] nextCells = new CellType[p.height / SCALE][p.width / SCALE];
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
@@ -272,7 +276,7 @@ public class CellularAutomaton {
 		return nextCells;
 	}
 
-	public Vector2D[][] initNextVelocities(PApplet p) {
+	public Vector2D[][] initNextVelocities() {
 		Vector2D[][] nextVelocities = new Vector2D[p.height / SCALE][p.width / SCALE];
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
@@ -306,8 +310,8 @@ public class CellularAutomaton {
 		double fh = 0;
 		double fv = 0;
 
-		int H = cells.length; // Ã¢Ã»Ã±Ã®Ã²Ã  Ã¤Ã®Ã°Ã®Ã£Ã¨ Ã¯Ã® Y
-		int L = cells[0].length; // Ã¤Ã«Ã¨Ã­Ã  Ã¤Ã®Ã°Ã®Ã£Ã¨ Ã¯Ã® X
+		int H = cells.length; // âûñîòà äîðîãè ïî Y
+		int L = cells[0].length; // äëèíà äîðîãè ïî X
 
 		for (int x = 0; x < L / 2 - 1; x++) {
 			if (cells[H / 2 - 1][x] == CellType.CAR) {
@@ -394,10 +398,10 @@ public class CellularAutomaton {
 	}
 
 	/*
-	 * Ã“Ã±ÃªÃ®Ã°Ã¥Ã­Ã¨Ã¥ Ã¬Ã Ã¸Ã¨Ã­Ã»: ÃÃ°Ã®Ã¡Ã¥Ã£Ã Ã¥Ã¬Ã±Ã¿ Ã¯Ã® Ã¢Ã±Ã¥Ã¬Ã³ Ã¬Ã Ã±Ã±Ã¨Ã¢Ã³ Ã¿Ã·Ã¥Ã¥Ãª. ÃÃ°Ã®Ã¢Ã¥Ã°Ã¿Ã¥Ã²Ã±Ã¿ Ã§Ã­Ã Ãª
-	 * Ã­Ã Ã¯Ã°Ã Ã¢Ã«Ã¥Ã­Ã¨Ã¿(directions) Ã¯Ã® y Ã¨ Ã¯Ã® Ãµ. Ã…Ã±Ã«Ã¨ Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼ Ã¬Ã Ã¸Ã¨Ã­Ã» Ã¬Ã¥Ã­Ã¼Ã¸Ã¥ VMAX, Ã²Ã® Ãª
-	 * Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¨ Ã¤Ã®Ã¡Ã Ã¢Ã«Ã¿Ã¥Ã²Ã±Ã¿ 1, Ã¢ Ã±Ã«Ã³Ã·Ã Ãµ Ã®Ã²Ã°Ã¨Ã¶Ã Ã²Ã¥Ã«Ã¼Ã­Ã®Ã£Ã® Ã­Ã Ã¯Ã°Ã Ã¢Ã«Ã¥Ã­Ã¨Ã¿ Ã±Ã°Ã Ã¢Ã­Ã¨Ã¢Ã Ã¥Ã²Ã±Ã¿ Ã±
-	 * -VMAX, Ã¥Ã±Ã«Ã¨ Ã¡Ã®Ã«Ã¼Ã¸Ã¥ Ã½Ã²Ã®Ã£Ã® Ã§Ã­Ã Ã·Ã¥Ã­Ã¨Ã¿, Ã²Ã® Ãª Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¨ Ã¤Ã®Ã Ã¢Ã¡Ã«Ã¿Ã¥Ã²Ã±Ã¿ -1
+	 * Óñêîðåíèå ìàøèíû: Ïðîáåãàåìñÿ ïî âñåìó ìàññèâó ÿ÷ååê. Ïðîâåðÿåòñÿ çíàê
+	 * íàïðàâëåíèÿ(directions) ïî y è ïî õ. Åñëè ñêîðîñòü ìàøèíû ìåíüøå VMAX, òî ê
+	 * ñêîðîñòè äîáàâëÿåòñÿ 1, â ñëó÷àõ îòðèöàòåëüíîãî íàïðàâëåíèÿ ñðàâíèâàåòñÿ ñ
+	 * -VMAX, åñëè áîëüøå ýòîãî çíà÷åíèÿ, òî ê ñêîðîñòè äîàâáëÿåòñÿ -1
 	 */
 	public void speedUp() {
 		for (int y = 0; y < cells.length; y++) {
@@ -426,15 +430,15 @@ public class CellularAutomaton {
 	}
 
 	/*
-	 * Ã€Ã­Ã Ã«Ã®Ã£Ã¨Ã·Ã­Ã® Ã±Ã® speedUp Ã¯Ã°Ã®Ã¡Ã¥Ã£Ã Ã¥Ã¬Ã±Ã¿ Ã¯Ã® Ã¬Ã Ã±Ã±Ã¨Ã¢Ã³ Ã± Ã¿Ã·Ã¥Ã©ÃªÃ Ã¬Ã¨ ÃÃ°Ã®Ã¢Ã¥Ã°Ã¿Ã¥Ã²Ã±Ã¿ Ã§Ã­Ã Ãª
-	 * Ã­Ã Ã¯Ã°Ã Ã¢Ã«Ã¥Ã­Ã¨Ã¿(directions) Ã¨ Ã¯Ã°Ã®Ã¢Ã¥Ã°Ã¿Ã¥Ã²Ã±Ã¿ Ã¡Ã®Ã«Ã¼Ã¸Ã¥ Ã«Ã¨ Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼, Ã·Ã¥Ã¬ Ã¤Ã¨Ã±Ã²Ã Ã­Ã¶Ã¨Ã¿ Ã¤Ã®
-	 * Ã±Ã«Ã¥Ã¤Ã³Ã¾Ã¹Ã¥Ã© Ã¬Ã Ã¸Ã¨Ã­Ã», Ã¢Ã»Ã§Ã»Ã¢Ã Ã¿ Ã¬Ã¥Ã²Ã®Ã¤ distanceToClosestCar(y,x) (Ã®Ã­ Ã­Ã Ã¯Ã¨Ã±Ã Ã­ Ã­Ã¨Ã¦Ã¥).
-	 * Ã…Ã±Ã«Ã¨ Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼ Ã¡Ã®Ã«Ã¼Ã¸Ã¥, Ã·Ã¥Ã¬ Ã¤Ã¨Ã±Ã²Ã Ã­Ã¶Ã¨Ã¿ Ã¤Ã® Ã¡Ã«Ã¨Ã¦Ã Ã©Ã¸Ã¥Ã© Ã¬Ã Ã¸Ã¨Ã­Ã», Ã²Ã® Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼
-	 * Ã¯Ã°Ã¨Ã°Ã Ã¢Ã­Ã¨Ã¢Ã Ã¥Ã²Ã±Ã¿ Ãª Ã½Ã²Ã®Ã© Ã¤Ã¨Ã±Ã²Ã Ã­Ã¶Ã¨Ã¨. Ã‚ Ã±Ã«Ã³Ã·Ã Ã¿Ãµ Ã®Ã²Ã°Ã¨Ã¶Ã Ã²Ã¥Ã«Ã¼Ã­Ã®Ã£Ã® Ã­Ã Ã¯Ã°Ã Ã¢Ã«Ã¥Ã­Ã¨Ã¿
-	 * Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼ Ã±Ã°Ã Ã¢Ã­Ã¨Ã¢Ã Ã¥Ã²Ã±Ã¿ Ã± -distanceToClosestCar(y,x), Ã¥Ã±Ã«Ã¨ Ã¡Ã®Ã«Ã¼Ã¸Ã¥ Ã·Ã¥Ã¬ Ã½Ã²Ã®
-	 * Ã§Ã­Ã Ã·Ã¥Ã­Ã¨Ã¥, Ã²Ã® Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼ Ã¯Ã°Ã¨Ã°Ã Ã¢Ã­Ã¨Ã¢Ã Ã¥Ã²Ã±Ã¿ Ãª -distanceToClosestCar(y,x)
+	 * Àíàëîãè÷íî ñî speedUp ïðîáåãàåìñÿ ïî ìàññèâó ñ ÿ÷åéêàìè Ïðîâåðÿåòñÿ çíàê
+	 * íàïðàâëåíèÿ(directions) è ïðîâåðÿåòñÿ áîëüøå ëè ñêîðîñòü, ÷åì äèñòàíöèÿ äî
+	 * ñëåäóþùåé ìàøèíû, âûçûâàÿ ìåòîä distanceToClosestCar(y,x) (îí íàïèñàí íèæå).
+	 * Åñëè ñêîðîñòü áîëüøå, ÷åì äèñòàíöèÿ äî áëèæàéøåé ìàøèíû, òî ñêîðîñòü
+	 * ïðèðàâíèâàåòñÿ ê ýòîé äèñòàíöèè. Â ñëó÷àÿõ îòðèöàòåëüíîãî íàïðàâëåíèÿ
+	 * ñêîðîñòü ñðàâíèâàåòñÿ ñ -distanceToClosestCar(y,x), åñëè áîëüøå ÷åì ýòî
+	 * çíà÷åíèå, òî ñêîðîñòü ïðèðàâíèâàåòñÿ ê -distanceToClosestCar(y,x)
 	 * 
-	 * Ã“Ã±Ã«Ã®Ã¢Ã¨Ã¥Ã¬ cells[y][x] == CellType.CAR Ã¬Ã®Ã¦Ã­Ã® Ã¯Ã°Ã¥Ã­Ã¥Ã¡Ã°Ã¥Ã·Ã¼
+	 * Óñëîâèåì cells[y][x] == CellType.CAR ìîæíî ïðåíåáðå÷ü
 	 */
 	public void speedDown() {
 		for (int y = 0; y < cells.length; y++) {
@@ -459,14 +463,14 @@ public class CellularAutomaton {
 	}
 
 	/*
-	 * ÃÃ ÃµÃ®Ã¦Ã¤Ã¥Ã­Ã¨Ã¥ Ã¯Ã°Ã¥Ã¯Ã¿Ã²Ã±Ã²Ã¢Ã¨Ã© Ã¢Ã¯Ã¥Ã°Ã¥Ã¤Ã¨ Ã±Ã¥Ã¡Ã¿. ÃÃ®Ã¤ Ã¯Ã°Ã¥Ã¯Ã¿Ã²Ã±Ã²Ã¢Ã¨Ã¿Ã¬Ã¨ Ã¯Ã®Ã­Ã¨Ã¬Ã Ã¥Ã²Ã±Ã¿ Ã¬Ã Ã¸Ã¨Ã­Ã  Ã¨Ã«Ã¨
-	 * Ã­Ã¥Ã°Ã Ã§Ã°Ã¥Ã¸Ã¨Ã¬Ã®Ã±Ã²Ã¼ Ã²Ã³Ã¤Ã  Ã¥ÃµÃ Ã²Ã¼ (movePermission) Ã‚Ã»ÃµÃ®Ã¤ Ã§Ã  Ã¯Ã°Ã¥Ã¤Ã¥Ã«Ã» Ã¬Ã Ã±Ã±Ã¨Ã¢Ã  Ã²Ã®Ã¦Ã¥
-	 * Ã§Ã­Ã Ã·Ã¨Ã² Ã¯Ã°Ã¥Ã¯Ã¿Ã²Ã±Ã²Ã¢Ã¨Ã¥. Ã—Ã²Ã®Ã¡Ã» Ã±Ã¬Ã®Ã²Ã°Ã¥Ã²Ã¼, Ã·Ã²Ã® Ã¢Ã¯Ã¥Ã°Ã¥Ã¤Ã¨, Ã¤Ã®Ã¡Ã Ã¢Ã«Ã¿Ã¥Ã¬ Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼ ÃªÃ Ã¦Ã¤Ã»Ã©
-	 * Ã°Ã Ã§ Ã¯Ã® 1 (Ã¨Ã«Ã¨ -1) Ã¢ Ã§Ã Ã¢Ã¨Ã±Ã¨Ã¬Ã®Ã±Ã²Ã¨ Ã®Ã² Ã§Ã­Ã ÃªÃ . Ã‚Ã®Ã§Ã¢Ã°Ã Ã¹Ã Ã¥Ã² Ã°Ã Ã±Ã±Ã²Ã®Ã¿Ã­Ã¨Ã¥ Ã¤Ã®
-	 * Ã¯Ã°Ã¥Ã¯Ã¿Ã²Ã±Ã²Ã¢Ã¨Ã¿
+	 * Íàõîæäåíèå ïðåïÿòñòâèé âïåðåäè ñåáÿ. Ïîä ïðåïÿòñòâèÿìè ïîíèìàåòñÿ ìàøèíà èëè
+	 * íåðàçðåøèìîñòü òóäà åõàòü (movePermission) Âûõîä çà ïðåäåëû ìàññèâà òîæå
+	 * çíà÷èò ïðåïÿòñòâèå. ×òîáû ñìîòðåòü, ÷òî âïåðåäè, äîáàâëÿåì ñêîðîñòü êàæäûé
+	 * ðàç ïî 1 (èëè -1) â çàâèñèìîñòè îò çíàêà. Âîçâðàùàåò ðàññòîÿíèå äî
+	 * ïðåïÿòñòâèÿ
 	 * 
-	 * @carY - Ã¬Ã Ã¸Ã¨Ã­Ã  Ã¯Ã® Y
-	 * @carX - Ã¬Ã Ã¸Ã¨Ã­Ã  Ã¯Ã® Ã• Ã®Ã²Ã­Ã±Ã®Ã¨Ã²Ã¥Ã«Ã¼Ã­Ã® carX and carY Ã­Ã ÃµÃ®Ã¤Ã¨Ã¬ Ã¯Ã°Ã¥Ã¯Ã¿Ã²Ã±Ã²Ã¢Ã¨Ã¥
+	 * @carY - ìàøèíà ïî Y
+	 * @carX - ìàøèíà ïî Õ îòíñîèòåëüíî carX and carY íàõîäèì ïðåïÿòñòâèå
 	 */
 	private int distanceToClosestObstacle(int carY, int carX) {
 		int distance = -1;

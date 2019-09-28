@@ -3,7 +3,7 @@ import processing.core.PApplet;
 
 /* GridOfCells
  * An application displaying a traffic model based on cellular automata
- * The traffic flow is represented as a crossroad and a traffic light
+ * The traffic flow is represented as a cross road and a traffic light
  * @author Roman Kotyubeev.
  * Date: June 10, 2019
  */
@@ -17,7 +17,7 @@ public class GridOfCells extends PApplet {
 	private CSVutil csvutil = new CSVutil();
 
 	//start point
-	protected int totalCars = 1;
+	protected int totalCars = 50;
 	private int seriesCount = 0;
 	
 	//parameters of the adaptive algorithm
@@ -49,7 +49,7 @@ public class GridOfCells extends PApplet {
 	//setup method will be initialized just one time
 	public void setup() {
 		//frameRate is for speed of updating the grid
-		//frameRate(1);
+		frameRate(1);
 		ca = new CellularAutomaton(totalCars, power, treshold, this);
 	}
 
@@ -59,8 +59,8 @@ public class GridOfCells extends PApplet {
 		//In catch I change the parameters of adaptive algorithm and make the new grid with 1 car
 		try {
 			if (!ca.stopped) {
-				ca.nextIteration(this);
-				ca.displayCells(this);
+				ca.nextIteration();
+				ca.displayCells();
 			} 
 			else if (seriesCount < NUM_EXP) {
 				seriesCount++;
@@ -79,8 +79,8 @@ public class GridOfCells extends PApplet {
 				println("timeDelay=" + timeDelay);
 				
 				//Write the data in a csv file
-				csvutil.csvForOverallTime(this);
-				csvutil.csvForTimeDelay(this);
+				//csvutil.csvForOverallTime(this);
+				//csvutil.csvForTimeDelay(this);
 				
 				//increase amount of cars. Update the data
 				totalCars++;
