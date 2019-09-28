@@ -2,9 +2,8 @@ package cellmodel;
 
 import java.util.ArrayList;
 import java.util.Random;
-
 import processing.core.PApplet;
-import processing.core.PGraphics;
+
 
 /* CellularAutomaton
  * This project is for building a traffic flow model based on cellular automata.
@@ -62,7 +61,7 @@ public class CellularAutomaton {
 	private int totalCars;
 
 	//to use processing library tools
-	PApplet p;
+	private PApplet p;
 
 	/* @totalCars is a maximum cars in the grid
 	 * @power is one of the parameters of the adaptive algorithm
@@ -224,59 +223,72 @@ public class CellularAutomaton {
 	// This method and all methods which this method calls use Nagel-Schrekenberg model
 	// This method creates an updated grid of cells. Updating is based on rules of NS-model
 	public void nextIteration() {
-		//see below implementation of these methods
+		
 		//A car speeds down if there is another car in front of it or the traffic light forbids to move further  
 		//A car speeds up if there is no obstacle in front of it
 		speedUp();
 		speedDown();
 
+		//Initialization a grid of cells without any car to not save previous states
 		CellType[][] nextCells = initNextCells();
 		Vector2D[][] nextVelocities = initNextVelocities();
 
+		//change positions of cars according to their velocities
+		//write new positions and new velocities of cars to the updated grid of cells  
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
 				if (cells[y][x] == CellType.CAR) {
 					int speedY = velocities[y][x].getFirst();
 					int speedX = velocities[y][x].getSecond();
 
+					//for scientific purpose let's count every car which doesn't move
 					if (speedX == 0 && speedY == 0) {
 						timeDelay++;
 					}
-
-					if (y + speedY < cells.length && x + speedX < cells[0].length && y + speedY >= 0
-							&& x + speedX >= 0) {
+					
+					// dont't forget about bounds when car move beyond the screen
+					if ( (y + speedY) < cells.length && (x + speedX) < cells[0].length 
+							&& (y + speedY) >= 0 && (x + speedX) >= 0 ) {
+						//write new positions and new velocities of cars to the updated grid of cells
 						nextCells[y + speedY][x + speedX] = CellType.CAR;
 						nextVelocities[y + speedY][x + speedX] = velocities[y][x];
 					}
 				}
 			}
 		}
-
+		//this updated grid becomes the present grid
 		cells = nextCells;
 		velocities = nextVelocities;
 
+		//Iteration is each update of the grid of cells. We count it
 		numberOfIterations++;
-		checkTrafficLight();
-		checkTime();
+		
+		//adaptive algorithm or classic algorithm for controlling the traffic light
+		chooseTrafficLightMode();
+		
+		//check if there is no cars
+		checkCarsAndTime();
 	}
 
-	public CellType[][] initNextCells() {
+	//Initialization a new grid without any car
+	private CellType[][] initNextCells() {
 		CellType[][] nextCells = new CellType[p.height / SCALE][p.width / SCALE];
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
 				switch (cells[y][x]) {
-				case CAR:
-					nextCells[y][x] = CellType.ROAD;
-					break;
-				default:
-					nextCells[y][x] = cells[y][x];
+					case CAR:
+						nextCells[y][x] = CellType.ROAD;
+						break;
+					default:
+						nextCells[y][x] = cells[y][x];
 				}
 			}
 		}
 		return nextCells;
 	}
-
-	public Vector2D[][] initNextVelocities() {
+	
+	//Initialization a new velocities with zero values
+	private Vector2D[][] initNextVelocities() {
 		Vector2D[][] nextVelocities = new Vector2D[p.height / SCALE][p.width / SCALE];
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
@@ -286,6 +298,7 @@ public class CellularAutomaton {
 		return nextVelocities;
 	}
 
+	//Classic algorithm switch the traffic light state after the definite time interval
 	private void classicAlg() {
 		switch (trafficLightState) {
 		case RED:
@@ -306,19 +319,26 @@ public class CellularAutomaton {
 		}
 	}
 
+	// adaptive algorithm changes the traffic light state according to the weights fh and fv
 	private void adaptiveAlg() {
+		//the weights
 		double fh = 0;
 		double fv = 0;
 
-		int H = cells.length; // высота дороги по Y
-		int L = cells[0].length; // длина дороги по X
+		//height and width
+		int H = cells.length; 
+		int L = cells[0].length; 
 
+		//Horizontal
+		//from left to the center
 		for (int x = 0; x < L / 2 - 1; x++) {
 			if (cells[H / 2 - 1][x] == CellType.CAR) {
 				int distance = (L / 2 - 1) - x;
+				//here we calculate the weight along the horizontal line
 				fh += Math.pow((float) 1 / distance, power);
 			}
 		}
+		//from tight to the center
 		for (int x = L / 2 + 1; x < L; x++) {
 			if (cells[H / 2][x] == CellType.CAR) {
 				int distance = x - L / 2;
@@ -326,20 +346,23 @@ public class CellularAutomaton {
 			}
 		}
 		// Vertical
+		//from top to the center
 		for (int y = 0; y < H / 2 - 1; y++) {
 			if (cells[y][L / 2] == CellType.CAR) {
 				int distance = (H / 2 - 1) - y;
 				fv += Math.pow((float) 1 / distance, power);
 			}
 		}
+		//from bottom to the center
 		for (int y = H / 2 + 1; y < H; y++) {
 			if (cells[y][L / 2 - 1] == CellType.CAR) {
 				int distance = y - H / 2;
+				//here we calculate the weight along the vertical line
 				fv += Math.pow((float) 1 / distance, power);
 			}
 		}
-		// println("fh = " + fh + ", fv = " + fv);
-
+	
+		//change the traffic light state according to relations between fh and fv 
 		switch (trafficLightState) {
 		case RED:
 			if (fh / fv > treshold) {
@@ -364,12 +387,14 @@ public class CellularAutomaton {
 		}
 	}
 
-	public void checkTrafficLight() {
+	//choose what kind of algorithm of the traffic light control you want to try
+	public void chooseTrafficLightMode() {
 		//classicAlg();
 		adaptiveAlg();
 	}
 
-	public void switchTrafficLight() {
+	//Change move permissions with changing the traffic light state 
+	private void switchTrafficLight() {
 		int yPermission = 0;
 		int xPermission = 0;
 
@@ -397,100 +422,115 @@ public class CellularAutomaton {
 		}
 	}
 
-	/*
-	 * Ускорение машины: Пробегаемся по всему массиву ячеек. Проверяется знак
-	 * направления(directions) по y и по х. Если скорость машины меньше VMAX, то к
-	 * скорости добавляется 1, в случах отрицательного направления сравнивается с
-	 * -VMAX, если больше этого значения, то к скорости доавбляется -1
-	 */
-	public void speedUp() {
+	// if the velocit of a car is less VMAX, the car speeds up
+	private void speedUp() {
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
 
-				// int dirY = Integer.signum(velocities[y][x].getFirst());
-				// int dirX = Integer.signum(velocities[y][x].getSecond());
+				//multiplication by movePermissions allows to move through the center
 				int dirY = directions[y][x].getFirst() * movePermissions[y][x].getFirst();
 				int dirX = directions[y][x].getSecond() * movePermissions[y][x].getSecond();
+				
+				//to not make it difficult, let's get the absolute velocity
 				int absVelocityY = Math.abs(velocities[y][x].getFirst());
 				int absVelocityX = Math.abs(velocities[y][x].getSecond());
 
+				//along Y-axis (vertical)
 				if (dirY > 0 && absVelocityY < VMAX) {
 					velocities[y][x].setFirst(velocities[y][x].getFirst() + 1);
-				} else if (dirY < 0 && absVelocityY < VMAX) {
+				} 
+				else if (dirY < 0 && absVelocityY < VMAX) {
 					velocities[y][x].setFirst(velocities[y][x].getFirst() - 1);
 				}
-
+				else {
+					throw new java.lang.Error("What the value of dirY?");
+				}
+				
+				//along X-axis (horizontal)
 				if (dirX > 0 && absVelocityX < VMAX) {
 					velocities[y][x].setSecond(velocities[y][x].getSecond() + 1);
-				} else if (dirX < 0 && absVelocityX < VMAX) {
+				} 
+				else if (dirX < 0 && absVelocityX < VMAX) {
 					velocities[y][x].setSecond(velocities[y][x].getSecond() - 1);
+				}
+				else {
+					throw new java.lang.Error("What the value of dirX?");
 				}
 			}
 		}
 	}
 
-	/*
-	 * Аналогично со speedUp пробегаемся по массиву с ячейками Проверяется знак
-	 * направления(directions) и проверяется больше ли скорость, чем дистанция до
-	 * следующей машины, вызывая метод distanceToClosestCar(y,x) (он написан ниже).
-	 * Если скорость больше, чем дистанция до ближайшей машины, то скорость
-	 * приравнивается к этой дистанции. В случаях отрицательного направления
-	 * скорость сравнивается с -distanceToClosestCar(y,x), если больше чем это
-	 * значение, то скорость приравнивается к -distanceToClosestCar(y,x)
-	 * 
-	 * Условием cells[y][x] == CellType.CAR можно пренебречь
-	 */
-	public void speedDown() {
+	//if there is an obstacle in front of a car, the car speeds down
+	private void speedDown() {
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[0].length; x++) {
 				if (cells[y][x] == CellType.CAR) {
+					
 					if (directions[y][x].getFirst() > 0
 							&& velocities[y][x].getFirst() > distanceToClosestObstacle(y, x)) {
+						
 						velocities[y][x].setFirst(distanceToClosestObstacle(y, x));
-					} else if (directions[y][x].getFirst() < 0
+					} 
+					else if (directions[y][x].getFirst() < 0
 							&& velocities[y][x].getFirst() < (-distanceToClosestObstacle(y, x))) {
+						
 						velocities[y][x].setFirst(-distanceToClosestObstacle(y, x));
-					} else if (directions[y][x].getSecond() > 0
+					} 
+					else if (directions[y][x].getSecond() > 0
 							&& velocities[y][x].getSecond() > distanceToClosestObstacle(y, x)) {
+						
 						velocities[y][x].setSecond(distanceToClosestObstacle(y, x));
-					} else if (directions[y][x].getSecond() < 0
+					} 
+					else if (directions[y][x].getSecond() < 0
 							&& velocities[y][x].getSecond() < (-distanceToClosestObstacle(y, x))) {
+						
 						velocities[y][x].setSecond(-distanceToClosestObstacle(y, x));
+					}
+					else {
+						throw new java.lang.Error("speedDown?");
 					}
 				}
 			}
 		}
 	}
-
+	
+	
 	/*
-	 * Нахождение препятствий впереди себя. Под препятствиями понимается машина или
-	 * неразрешимость туда ехать (movePermission) Выход за пределы массива тоже
-	 * значит препятствие. Чтобы смотреть, что впереди, добавляем скорость каждый
-	 * раз по 1 (или -1) в зависимости от знака. Возвращает расстояние до
-	 * препятствия
+	 * Finding the distance to an obstacle in front of a car. 
+	 * An obstacle can be another car, a wall, the bounds of the screen, prohibition to move further (movePermision == 0).
+	 * @carY and @carX are the coordinate of the car
 	 * 
-	 * @carY - машина по Y
-	 * @carX - машина по Х отнсоительно carX and carY находим препятствие
 	 */
 	private int distanceToClosestObstacle(int carY, int carX) {
+		//anyway we enter the loop, that's why -1
 		int distance = -1;
+		
+		//the sign of velocity
+		//if the value is positive, it returns 1,
+		//negative, it returns -1
+		//0, it returns 0
 		int sgnVelocityY = Integer.signum(velocities[carY][carX].getFirst());
 		int sgnVelocityX = Integer.signum(velocities[carY][carX].getSecond());
 
+		//coordinates which will be used to find the closest obstacle
 		int y = carY;
 		int x = carX;
+		
+		//a flag
 		boolean obstacleFound = false;
 		while (!obstacleFound) {
 			y += sgnVelocityY;
 			x += sgnVelocityX;
 			distance++;
 
+			//the bounds
 			if (y < 0 || y >= cells.length || x < 0 || x >= cells[0].length) {
 				distance = Integer.MAX_VALUE;
 				obstacleFound = true;
 				break;
 			}
 
+			//the center is prohibited to cross
 			if (sgnVelocityY != 0 && movePermissions[carY][carX].getFirst() != 0
 					&& movePermissions[y][x].getFirst() == 0
 					|| sgnVelocityX != 0 && movePermissions[carY][carX].getSecond() != 0
@@ -499,19 +539,23 @@ public class CellularAutomaton {
 				obstacleFound = true;
 			}
 
+			//ROAD is not an obstacle, but WALL and CAR are obstacles
 			switch (cells[y][x]) {
-			case ROAD:
-				break;
-			default:
-				obstacleFound = true;
-				break;
+				case ROAD:
+					break;
+				default:
+					obstacleFound = true;
+					break;
 			}
 		}
 
 		return distance;
 	}
 
-	public void checkTime() {
+	//if there in no cars on the grid, stopped = true.
+	//It helps to initialize a new grid with a different numbers of cars
+	public void checkCarsAndTime() {
+		//number of iterations required to get rid of cars on the grid
 		overallTime++;
 
 		boolean thereAreCars = false;
